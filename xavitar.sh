@@ -1,8 +1,7 @@
-
 #Sources.
-source ./credentials.sh
-source ./functions.sh
-source ./extra.sh
+source ~/Development/automating-daily-workflow/credentials.sh
+source ~/Development/automating-daily-workflow/functions.sh
+source ~/Development/automating-daily-workflow/extra.sh
 
 #Intro flow
 echo $hr
@@ -25,9 +24,18 @@ if [ "$confirmation" = Y ]
             echo "-Forge now pulls from your Wordpress Starter repository."
             wp_starter_update_forge_site_deploy_script
             echo "-Deploy script amended."
+            #Source it at this point of the flow to populate with the read variables
+            source ~/Development/automating-daily-workflow/wordpress-starter-env.sh
+            generate_env
+            echo "-Generating your customised env. (\"takes\" roughly 10 seconds)"
+            sleep 10 #Needed as forge doesn't make env editing available straight away, for some reason.
+            wp_starter_update_forge_site_env
+            echo "-Updating the website with your customised env."
         fi
         enable_quick_deploy_forge_site_repository
         echo "-Enabling quick deploy in Forge and deploying."
+        deploy_forge_site_repository
+        echo "-Deploying the chosen repository and installing composer dependencies."
         create_cloudflare_site
         echo "-Creating MySQL database in Forge"
         create_forge_site_database

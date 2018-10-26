@@ -1,5 +1,5 @@
-source ./extra.sh
-source ./credentials.sh
+source ~/Development/automating-daily-workflow/extra.sh
+source ~/Development/automating-daily-workflow/credentials.sh
 
 #Functions
 recap() {
@@ -94,12 +94,31 @@ enable_quick_deploy_forge_site_repository() {
       -H "Content-Type: application/json"
 }
 
+deploy_forge_site_repository() {
+    curl --silent -X POST "${forge_api_url}/servers/${client_server_list[$client_server]}/sites/${forge_response_site_id}/deployment/deploy" \
+      -H "Authorization: Bearer ${forge_tokens[$client_server]}" \
+      -H "Accept: application/json" \
+      -H "Content-Type: application/json"
+}
+
 wp_starter_update_forge_site_deploy_script() {
     curl --silent -X PUT "${forge_api_url}/servers/${client_server_list[$client_server]}/sites/${forge_response_site_id}/deployment/script" \
       -H "Authorization: Bearer ${forge_tokens[$client_server]}" \
       -H "Accept: application/json" \
       -H "Content-Type: application/json" \
       --data '{"content": "cd /home/forge/'${domain_name}' \ngit stash \ngit pull origin master\ncomposer install --no-interaction --prefer-dist --optimize-autoloader\necho \"\" | sudo -S service php7.1-fpm reload\ncd web/app/themes/default\nnpm install\nnpm run production"}'
+}
+
+generate_env() {
+  newenv="$( jq -nc --arg str "$env" '{"content": $str}' )"
+}
+
+wp_starter_update_forge_site_env() {
+    curl -X PUT "${forge_api_url}/servers/${client_server_list[$client_server]}/sites/${forge_response_site_id}/env" \
+      -H "Authorization: Bearer ${forge_tokens[$client_server]}" \
+      -H "Accept: application/json" \
+      -H "Content-Type: application/json" \
+      --data "${newenv}"
 }
 
 create_cloudflare_site() {
@@ -166,3 +185,5 @@ export create_cloudflare_site
 export get_cloudflare_site_dns
 export delete_cloudflare_site_dns
 export create_cloudflare_site_dns
+export wp_starter_update_forge_site_env
+export generate_env
